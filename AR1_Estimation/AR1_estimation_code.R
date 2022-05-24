@@ -25,11 +25,11 @@ B<-1000  # number of bootstrap replications
 #### 1. simulate from an AR(1) model - parametric bootstrap
 
 t1<- NULL
-for (i in 1:B) {
+t1 <- foreach (i = 1:B, .combine = 'c') %dopar% {
   bootdata<- arima.sim(n = 200, list(ar = c(phi), sd = sqrt(sigma)))
   modelboot<- arima(bootdata,c(1,0,0))
   phiboot<-modelboot$coef[1]
-  t1<-c(t1,phiboot)
+
 }
 sd(t1)
 
@@ -37,11 +37,10 @@ sd(t1)
 
 #####  2. Davies Harte simulation
 t2<- NULL
-for (i in 1:B) {
+t2 <- foreach (i = 1:B, .combine = 'c') %dopar% {
   Dbootdata<- Davies.Harte.sim(n, ar.acvs, rho=phi)
   modelboot2<- arima(Dbootdata,c(1,0,0))
   phiboot2<-modelboot2$coef[1]
-  t2<-c(t2,phiboot2)
 }
 sd(t2)
 
@@ -55,13 +54,12 @@ len<-8
 createblocks<-matrix(data, n/len, len, byrow=TRUE)
 
 t3<-NULL
-for (i in 1:B ) {
+t3 <- foreach (i = 1:B, .combine = 'c') %dopar% {
   ind<-sample(1:25,25,replace=TRUE)  ## select rows, i.e. blocks
   newseries<-   createblocks[ind,]  #creates matrix of block samples according to ind
   newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
   modelboot3<- arima(newseries,c(1,0,0)) #fits AR(1) model
   phiboot3<-modelboot3$coef[1]
-  t3<-c(t3,phiboot3)
 }
 sd(t3)
 
@@ -81,7 +79,7 @@ for ( i in 2:n) {
 
 ####
 t4<-NULL
-for (i in 1:B ) {
+t4 <- foreach (i = 1:B, .combine = 'c' ) %dopar% {
   ind<-sample(1:dim(blocks)[1], ceiling(n/len), replace=TRUE)  ## select rows, i.e. blocks
   ind
   newseries<-   blocks[ind,]
@@ -90,7 +88,6 @@ for (i in 1:B ) {
   newdata<-newdata[1:n]
   modelboot4<- arima(newdata,c(1,0,0))
   phiboot4<-modelboot4$coef[1]
-  t4<-c(t4,phiboot4)
 }
 sd(t4)
 

@@ -27,12 +27,11 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
   #### 1. simulate from an AR(1) model - parametric bootstrap
   
   t1<- NULL
-  for (i in 1:B) {
+  t1 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
     bootdata<- arima.sim(n = n, list(ar = c(phi), sd = sqrt(sigma)))
     modelboot<- arima(bootdata,c(1,0,0))
     phiboot<-modelboot$coef[1]
-    t1<-c(t1,phiboot)
   }
   sd(t1)
   
@@ -45,7 +44,7 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
     Dbootdata<- Davies.Harte.sim(n, ar.acvs, rho=phi)
     modelboot2<- arima(Dbootdata,c(1,0,0))
     phiboot2<-modelboot2$coef[1]
-    t2<-c(t2,phiboot2)
+    t2 <- c(t2, phiboot2)
   }
   sd(t2)
   
@@ -59,14 +58,13 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
   createblocks<-matrix(data, n/len, len, byrow=TRUE)
   
   t3<-NULL
-  for (i in 1:B ) {
+  t3 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
     ind<-sample(1:n/len,n/len,replace=TRUE)  ## select rows, i.e. blocks
     newseries<-   createblocks[ind,]  #creates matrix of block samples according to ind
     newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
     modelboot3<- arima(newseries,c(1,0,0)) #fits AR(1) model
     phiboot3<-modelboot3$coef[1]
-    t3<-c(t3,phiboot3)
   }
   sd(t3)
   
@@ -86,7 +84,7 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
   
   ####
   t4<-NULL
-  for (i in 1:B ) {
+  t4 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     ind<-sample(1:dim(blocks)[1], ceiling(n/len), replace=TRUE)  ## select rows, i.e. blocks
     newseries<-   blocks[ind,]
     newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
@@ -94,7 +92,6 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
     newdata<-newdata[1:n]
     modelboot4<- arima(newdata,c(1,0,0))
     phiboot4<-modelboot4$coef[1]
-    t4<-c(t4,phiboot4)
   }
   sd(t4)
   

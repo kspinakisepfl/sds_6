@@ -5,7 +5,7 @@
   
   #here we'll plot phi against phi_hat
   
-  ITERS <- 10
+  ITERS <- 5
   
   
   temp <- AR1_estimation_fct(200, -0.90, 1000, 0.025, 0.975, 20)
@@ -31,7 +31,7 @@
     temp <- temp / ITERS
     
     
-    Result <-rbind(temp, AR1_estimation_fct(200, k, 1000, 0.025, 0.975, 20))
+    Result <-rbind(Result, temp)
     print(k)
   }
   
