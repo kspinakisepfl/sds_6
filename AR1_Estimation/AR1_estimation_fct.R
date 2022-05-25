@@ -1,5 +1,6 @@
 AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
 {
+  
   ###############################################
   ### simulate a dataset of size n=200 from AR(1)
   ###  with phi=0.8
@@ -39,12 +40,13 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
   
   #####  2. Davies Harte simulation
   t2<- NULL
-  for (i in 1:B) {
+  t2 <- foreach (i = 1:B, .combine = 'c') %dopar% {
+    source("DaviesHarte.R", local = TRUE)
+    source("ar_acvs.R", local = TRUE)
 
     Dbootdata<- Davies.Harte.sim(n, ar.acvs, rho=phi)
     modelboot2<- arima(Dbootdata,c(1,0,0))
     phiboot2<-modelboot2$coef[1]
-    t2 <- c(t2, phiboot2)
   }
   sd(t2)
   
