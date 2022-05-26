@@ -7,18 +7,28 @@
   
   ITERS <- 10
   
-  
-  temp <- foreach (j = 1:ITERS, .combine = 'cbind', .packages="foreach") %dopar% {
-    AR1_estimation_fct(200, -0.90, 1000, 0.025, 0.975, 20)
+  temp <- 0
+  temp <- AR1_estimation_fct(2000, -0.90, 1000, 0.025, 0.975, 20)
+  print(paste0("j = ", 1))
+  for (j in 1:(ITERS-1))
+  {
+    temp <- temp + AR1_estimation_fct(2000, -0.90, 1000, 0.025, 0.975, 20)
+    print(paste0("j = ", (j+1)))
   }
   temp <- temp / ITERS
-  Result <-temp
-
+  Result <- temp
+########################################## RESUME WITH SAVED RESULTS FILE, FROM WHATEVER VALUE YOU STOPPED AT
 
   for (k in seq(-0.89,0.90,0.01))
   {
-   temp <- foreach (j = 1:ITERS, .combine = 'cbind', .packages="foreach") %dopar% {
-      AR1_estimation_fct(200, k, 1000, 0.025, 0.975, 20)
+    
+   temp <- 0
+   temp <- AR1_estimation_fct(2000, k, 1000, 0.025, 0.975, 20)
+   print(paste0("j = ", 1))
+   for (j in 1:(ITERS-1))
+    {
+      temp <- temp + AR1_estimation_fct(2000, k, 1000, 0.025, 0.975, 20)
+      print(paste0("j = ", (j+1)))
     }
     temp <- temp / ITERS
 
