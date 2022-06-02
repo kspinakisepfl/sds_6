@@ -1,17 +1,16 @@
-MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
+MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright, BBB)
 {
-  ###############################################
-  ### simulate a dataset of size n=200 from MA(1)
-  ###  with theta=0.8
   
+  ###############################################
+  ### simulate a dataset of size n=200 from AR(1)
+  ###  with theta=0.8
   
   
   n<-N
   data<- arima.sim(n = n, list(ma = c(theta_actual), sd = sqrt(1)))
   
   
-  
-  model<- arima(data,c(0,0,1))  #fit an AR(1) model to the data
+  model<- arima(data,c(0,0,1))  #fit an MA(1) model to the data
   
   #### save the estimates
   theta<-model$coef[1]
@@ -22,6 +21,9 @@ MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   
   B<-B  # number of bootstrap replications
   
+  
+  
+  ####bootstrap starts
   ######  3. Bootstrap with fixed block size
   #### fixed blocks, of size 8
   len<-BBB
@@ -30,14 +32,14 @@ MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   createblocks<-matrix(data, n/len, len, byrow=TRUE)
   
   t3<-NULL
-  for (i in 1:B ) {
+  t3 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
-    ind<-sample(1:n/len,n/len,replace=TRUE)  ## select rows, i.e. blocks
-    newseries<-   createblocks[ind,]  #creates matrix of block samples
-    newseries<- as.vector(t(newseries))  # the default is by column so I
+    avoid_no_roundoff <- n/len
+    ind<-sample(1:avoid_no_roundoff,avoid_no_roundoff,replace=TRUE)  ## select rows, i.e. blocks
+    newseries<-   createblocks[ind,]  #creates matrix of block samples according to ind
+    newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
     modelboot3<- arima(newseries,c(0,0,1)) #fits AR(1) model
     thetaboot3<-modelboot3$coef[1]
-    t3<-c(t3,thetaboot3)
   }
   sd(t3)
   
@@ -57,15 +59,14 @@ MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   
   ####
   t4<-NULL
-  for (i in 1:B ) {
-    ind<-sample(1:dim(blocks)[1], ceiling(n/len), replace=TRUE)  ##
+  t4 <- foreach (i = 1:B, .combine = 'c') %dopar% {
+    ind<-sample(1:dim(blocks)[1], ceiling(n/len), replace=TRUE)  ## select rows, i.e. blocks
     newseries<-   blocks[ind,]
-    newseries<- as.vector(t(newseries))  # the default is by column so I
+    newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
     newdata<-data[newseries]
     newdata<-newdata[1:n]
     modelboot4<- arima(newdata,c(0,0,1))
     thetaboot4<-modelboot4$coef[1]
-    t4<-c(t4,thetaboot4)
   }
   sd(t4)
   
@@ -78,9 +79,8 @@ MODIFIED_MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   
   
   
-  b<-data.frame(theta = theta_actual,theta_hat_3 =
-                  mean(t3),T3L = Q3[1],T3U = Q3[2],theta_hat_4 = mean(t4),T4L = Q4[1],T4U =
-                  Q4[2])
+  
+  b<-data.frame(theta = theta_actual,theta_hat_3 = mean(t3),T3L = Q3[1],T3U = Q3[2],theta_hat_4 = mean(t4),T4L = Q4[1],T4U = Q4[2])
   
   
   return (b)

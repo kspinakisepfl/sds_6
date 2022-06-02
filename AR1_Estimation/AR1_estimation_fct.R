@@ -1,4 +1,4 @@
-AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
+AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright, BBB)
 {
   
   ###############################################
@@ -62,7 +62,8 @@ AR1_estimation_fct <- function(N, phi_actual, B, CIleft, CIright,BBB)
   t3<-NULL
   t3 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
-    ind<-sample(1:n/len,n/len,replace=TRUE)  ## select rows, i.e. blocks
+    avoid_no_roundoff <- n/len
+    ind<-sample(1:avoid_no_roundoff,avoid_no_roundoff,replace=TRUE)  ## select rows, i.e. blocks
     newseries<-   createblocks[ind,]  #creates matrix of block samples according to ind
     newseries<- as.vector(t(newseries))  # the default is by column so I transpose to make it by row
     modelboot3<- arima(newseries,c(1,0,0)) #fits AR(1) model

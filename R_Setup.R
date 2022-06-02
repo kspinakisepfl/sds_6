@@ -1,6 +1,6 @@
 ########## R SETUP ###########
 
-setwd("C:/Users/kspin/Documents/R Outputs/Projects/SDS_6/AR1_Estimation")
+setwd("C:/Users/kspin/Documents/R Outputs/Projects/SDS_6/MA1_Estimation")
 
 require("pacman")
 pacman::p_load(boot,latex2exp,tseries,ggplot2)

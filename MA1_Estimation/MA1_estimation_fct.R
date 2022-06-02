@@ -1,8 +1,10 @@
 MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
 {
+  
   ###############################################
   ### simulate a dataset of size n=200 from MA(1)
   ###  with theta=0.8
+  
   
   
   
@@ -26,12 +28,11 @@ MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   #### 1. simulate from an AR(1) model - parametric bootstrap
   
   t1<- NULL
-  for (i in 1:B) {
+  t1 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
-    bootdata<- arima.sim(n = 200, list(ma = c(theta), sd = sqrt(sigma)))
+    bootdata<- arima.sim(n = n, list(ma = c(theta), sd = sqrt(sigma)))
     modelboot<- arima(bootdata,c(0,0,1))
     thetaboot<-modelboot$coef[1]
-    t1<-c(t1,thetaboot)
   }
   sd(t1)
   
@@ -39,12 +40,13 @@ MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   
   #####  2. Davies Harte simulation
   t2<- NULL
-  for (i in 1:B) {
+  t2 <- foreach (i = 1:B, .combine = 'c') %dopar% {
+    source("DaviesHarte.R", local = TRUE)
+    source("ma_acvs.R", local = TRUE)
     
     Dbootdata<- Davies.Harte.sim(n, ma.acvs, rho=theta)
     modelboot2<- arima(Dbootdata,c(0,0,1))
     thetaboot2<-modelboot2$coef[1]
-    t2<-c(t2,thetaboot2)
   }
   sd(t2)
   
@@ -58,14 +60,14 @@ MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   createblocks<-matrix(data, n/len, len, byrow=TRUE)
   
   t3<-NULL
-  for (i in 1:B ) {
+  t3 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     
-    ind<-sample(1:n/len,n/len,replace=TRUE)  ## select rows, i.e. blocks
+    avoid_no_roundoff <- n/len
+    ind<-sample(1:avoid_no_roundoff,avoid_no_roundoff,replace=TRUE)  ## select rows, i.e. blocks
     newseries<-   createblocks[ind,]  #creates matrix of block samples
     newseries<- as.vector(t(newseries))  # the default is by column so I
     modelboot3<- arima(newseries,c(0,0,1)) #fits AR(1) model
     thetaboot3<-modelboot3$coef[1]
-    t3<-c(t3,thetaboot3)
   }
   sd(t3)
   
@@ -85,7 +87,7 @@ MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
   
   ####
   t4<-NULL
-  for (i in 1:B ) {
+  t4 <- foreach (i = 1:B, .combine = 'c') %dopar% {
     ind<-sample(1:dim(blocks)[1], ceiling(n/len), replace=TRUE)  ##
     newseries<-   blocks[ind,]
     newseries<- as.vector(t(newseries))  # the default is by column so I
@@ -93,7 +95,6 @@ MA1_estimation_fct <- function(N, theta_actual, B, CIleft, CIright,BBB)
     newdata<-newdata[1:n]
     modelboot4<- arima(newdata,c(0,0,1))
     thetaboot4<-modelboot4$coef[1]
-    t4<-c(t4,thetaboot4)
   }
   sd(t4)
   
