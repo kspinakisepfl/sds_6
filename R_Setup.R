@@ -3,7 +3,7 @@
 setwd("C:/Users/kspin/Documents/R Outputs/Projects/SDS_6/MA1_Estimation")
 
 require("pacman")
-pacman::p_load(boot,latex2exp,tseries,ggplot2)
+pacman::p_load(boot,latex2exp,tseries,ggplot2,cowplot)
 
 #automatic install of packages if they are not installed already
 list.of.packages <- c(
